@@ -5,74 +5,151 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+
 body{
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 10px;
-    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    margin:0;
+    padding:15px;
+    background:#f4f7fb;
 }
 
-.box{
-    border: 1px solid #2c7be5;
-    background: #f4f8ff;
-    border-radius: 8px;
-    padding: 15px;
+.card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    text-align:center;
 }
 
-.label{
-    font-size: 14px;
-    color: #555;
+.title{
+    font-size:14px;
+    color:#6b7280;
+    margin-bottom:10px;
 }
 
 .nilai{
-    font-size: 32px;
-    font-weight: bold;
-    color: #2c7be5;
-    margin-top: 5px;
+    font-size:48px;
+    font-weight:bold;
+    color:#2563eb;
 }
 
-.kategori{
-    font-size: 16px;
-    margin-top: 5px;
+.per100{
+    font-size:16px;
+    color:#6b7280;
 }
+
+.badge{
+    display:inline-block;
+    margin-top:10px;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:14px;
+    font-weight:500;
+}
+
+.info{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-top:15px;
+    flex-wrap:wrap;
+}
+
+.info-box{
+    background:#f1f5f9;
+    padding:10px 15px;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.loading{
+    color:#6b7280;
+}
+
 </style>
 
 </head>
 <body>
 
-<div class="box">
-    <div class="label">Nilai SKM Terbaru</div>
-    <div class="nilai" id="nilai">Loading...</div>
-    <div class="kategori" id="kategori"></div>
+<div class="card">
+
+    <div class="title">
+        INDEKS KEPUASAN MASYARAKAT (IKM)
+    </div>
+
+    <div id="nilai" class="nilai loading">
+        Loading...
+    </div>
+
+    <div class="per100">
+        / 100
+    </div>
+
+    <div id="badge"></div>
+
+    <div class="info">
+
+        <div class="info-box">
+            Responden: <b id="responden">-</b>
+        </div>
+
+        <div class="info-box">
+            Grade: <b id="grade">-</b>
+        </div>
+
+    </div>
+
 </div>
 
 <script>
 
-async function loadSKM() {
+async function loadSKM(){
 
-    try {
+    try{
 
         const res = await fetch("https://skm.setdes.id/api/chart-data");
         const json = await res.json();
 
-        if(json.success && json.data){
+        if(!json.success) return;
 
-            const nilai = json.data.ikmScore;
-            const kategori = json.data.ikmCategory.label;
-            const grade = json.data.ikmCategory.grade;
+        const score = json.data.ikmScore;
+        const kategori = json.data.ikmCategory.label;
+        const grade = json.data.ikmCategory.grade;
+        const responden = json.data.totalResponses;
 
-            document.getElementById("nilai").innerHTML = nilai;
-            document.getElementById("kategori").innerHTML =
-                kategori + " (Grade " + grade + ")";
+        document.getElementById("nilai").innerHTML = score;
+        document.getElementById("responden").innerHTML = responden;
+        document.getElementById("grade").innerHTML = grade;
 
+        // warna kategori
+        let color="#2563eb";
+        let bg="#dbeafe";
+
+        if(grade=="A"){
+            color="#059669";
+            bg="#d1fae5";
         }
-        else{
-            document.getElementById("nilai").innerHTML = "Tidak tersedia";
+        else if(grade=="B"){
+            color="#2563eb";
+            bg="#dbeafe";
         }
+        else if(grade=="C"){
+            color="#d97706";
+            bg="#fef3c7";
+        }
+        else if(grade=="D"){
+            color="#dc2626";
+            bg="#fee2e2";
+        }
+
+        document.getElementById("badge").innerHTML=
+        `<span class="badge" style="background:${bg};color:${color}">
+        ${grade} - ${kategori}
+        </span>`;
 
     }
     catch{
-        document.getElementById("nilai").innerHTML = "Tidak tersedia";
+        document.getElementById("nilai").innerHTML="Tidak tersedia";
     }
 
 }
