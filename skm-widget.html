@@ -39,7 +39,14 @@ fetch('https://skm.setdes.id/api/chart-data')
 .then(r=>r.json())
 .then(d=>{
 let last=d[d.length-1];
-document.getElementById('nilai').innerHTML=last.value;
+let nilai =
+    last.value ??
+    last.nilai ??
+    last.skm ??
+    last.score ??
+    Object.values(last)[1];
+
+document.getElementById('nilai').innerHTML = nilai;
 })
 .catch(()=>{
 document.getElementById('nilai').innerHTML="Tidak tersedia";
