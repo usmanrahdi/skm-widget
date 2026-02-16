@@ -7,63 +7,66 @@
 <style>
 
 body{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
     margin:0;
-    padding:15px;
-    background:#f4f7fb;
+    padding:20px;
+    background:linear-gradient(135deg,#eff6ff,#ffffff);
 }
 
 .card{
     background:white;
-    border-radius:12px;
-    padding:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
     text-align:center;
 }
 
 .title{
     font-size:14px;
-    color:#6b7280;
+    color:#64748b;
     margin-bottom:10px;
 }
 
-.nilai{
-    font-size:48px;
+.score{
+    font-size:56px;
     font-weight:bold;
     color:#2563eb;
 }
 
-.per100{
-    font-size:16px;
-    color:#6b7280;
+.sub{
+    color:#64748b;
+    margin-bottom:10px;
 }
 
 .badge{
     display:inline-block;
+    padding:8px 18px;
+    border-radius:30px;
+    font-weight:600;
     margin-top:10px;
-    padding:6px 14px;
-    border-radius:20px;
-    font-size:14px;
-    font-weight:500;
 }
 
-.info{
+.grid{
     display:flex;
     justify-content:center;
     gap:20px;
-    margin-top:15px;
-    flex-wrap:wrap;
+    margin-top:20px;
 }
 
-.info-box{
+.box{
     background:#f1f5f9;
-    padding:10px 15px;
-    border-radius:8px;
-    font-size:14px;
+    padding:12px 18px;
+    border-radius:10px;
 }
 
-.loading{
-    color:#6b7280;
+.label{
+    font-size:13px;
+    color:#64748b;
+}
+
+.value{
+    font-size:18px;
+    font-weight:bold;
 }
 
 </style>
@@ -73,88 +76,68 @@ body{
 
 <div class="card">
 
-    <div class="title">
-        INDEKS KEPUASAN MASYARAKAT (IKM)
-    </div>
+<div class="title">
+INDEKS KEPUASAN MASYARAKAT
+</div>
 
-    <div id="nilai" class="nilai loading">
-        Loading...
-    </div>
+<div class="score" id="score">
+...
+</div>
 
-    <div class="per100">
-        / 100
-    </div>
+<div class="sub">
+/ 100
+</div>
 
-    <div id="badge"></div>
+<div id="badge"></div>
 
-    <div class="info">
+<div class="grid">
 
-        <div class="info-box">
-            Responden: <b id="responden">-</b>
-        </div>
+<div class="box">
+<div class="label">Responden</div>
+<div class="value" id="responden">-</div>
+</div>
 
-        <div class="info-box">
-            Grade: <b id="grade">-</b>
-        </div>
+<div class="box">
+<div class="label">Grade</div>
+<div class="value" id="grade">-</div>
+</div>
 
-    </div>
+</div>
 
 </div>
 
 <script>
 
-async function loadSKM(){
+async function load(){
 
-    try{
+const r=await fetch("https://skm.setdes.id/api/chart-data");
+const j=await r.json();
 
-        const res = await fetch("https://skm.setdes.id/api/chart-data");
-        const json = await res.json();
+const score=j.data.ikmScore;
+const kategori=j.data.ikmCategory.label;
+const grade=j.data.ikmCategory.grade;
+const responden=j.data.totalResponses;
 
-        if(!json.success) return;
+document.getElementById("score").innerHTML=score;
+document.getElementById("grade").innerHTML=grade;
+document.getElementById("responden").innerHTML=responden;
 
-        const score = json.data.ikmScore;
-        const kategori = json.data.ikmCategory.label;
-        const grade = json.data.ikmCategory.grade;
-        const responden = json.data.totalResponses;
+let color="#2563eb";
+let bg="#dbeafe";
 
-        document.getElementById("nilai").innerHTML = score;
-        document.getElementById("responden").innerHTML = responden;
-        document.getElementById("grade").innerHTML = grade;
+if(grade=="A"){color="#059669";bg="#d1fae5";}
+if(grade=="B"){color="#2563eb";bg="#dbeafe";}
+if(grade=="C"){color="#d97706";bg="#fef3c7";}
+if(grade=="D"){color="#dc2626";bg="#fee2e2";}
 
-        // warna kategori
-        let color="#2563eb";
-        let bg="#dbeafe";
-
-        if(grade=="A"){
-            color="#059669";
-            bg="#d1fae5";
-        }
-        else if(grade=="B"){
-            color="#2563eb";
-            bg="#dbeafe";
-        }
-        else if(grade=="C"){
-            color="#d97706";
-            bg="#fef3c7";
-        }
-        else if(grade=="D"){
-            color="#dc2626";
-            bg="#fee2e2";
-        }
-
-        document.getElementById("badge").innerHTML=
-        `<span class="badge" style="background:${bg};color:${color}">
-        ${grade} - ${kategori}
-        </span>`;
-
-    }
-    catch{
-        document.getElementById("nilai").innerHTML="Tidak tersedia";
-    }
+document.getElementById("badge").innerHTML=
+`<span class="badge" style="background:${bg};color:${color}">
+${grade} - ${kategori}
+</span>`;
 
 }
 
-loadSKM();
+load();
 
 </script>
 
