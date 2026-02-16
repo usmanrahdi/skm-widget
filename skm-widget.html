@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{
+font-family:Arial, sans-serif;
+margin:0;
+padding:10px;
+text-align:center;
+}
+.box{
+border:1px solid #2c7be5;
+background:#f4f8ff;
+border-radius:8px;
+padding:15px;
+}
+.nilai{
+font-size:32px;
+font-weight:bold;
+color:#2c7be5;
+}
+.label{
+font-size:14px;
+color:#555;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<div class="label">Nilai SKM Terbaru</div>
+<div class="nilai" id="nilai">Loading...</div>
+</div>
+
+<script>
+fetch('https://skm.setdes.id/api/chart-data')
+.then(r=>r.json())
+.then(d=>{
+let last=d[d.length-1];
+document.getElementById('nilai').innerHTML=last.value;
+})
+.catch(()=>{
+document.getElementById('nilai').innerHTML="Tidak tersedia";
+});
+</script>
+
+</body>
+</html>
