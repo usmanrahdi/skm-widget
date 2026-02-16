@@ -4,10 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 
 :root{
 --primary:#2563eb;
+--primary2:#3b82f6;
 --bg:#f1f5f9;
 --card:#ffffff;
 --text:#0f172a;
@@ -26,55 +29,50 @@ color:var(--text);
 .container{
 max-width:900px;
 margin:auto;
+padding-bottom:30px;
 }
 
 .card{
 background:var(--card);
-border-radius:14px;
-padding:25px;
-box-shadow:0 10px 25px rgba(0,0,0,0.05);
-margin-bottom:20px;
+border-radius:16px;
+padding:28px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
+margin-bottom:30px;
 }
 
 .hero{
 text-align:center;
-padding:35px 20px;
-background:linear-gradient(135deg,#2563eb,#3b82f6);
+background:linear-gradient(135deg,var(--primary),var(--primary2));
 color:white;
+padding:40px;
 }
 
-.hero .score{
+.score{
 font-size:72px;
 font-weight:700;
-line-height:1;
-}
-
-.hero .label{
-opacity:0.9;
-margin-bottom:10px;
 }
 
 .badge{
+margin-top:10px;
 display:inline-block;
 background:rgba(255,255,255,0.2);
-padding:8px 18px;
+padding:8px 20px;
 border-radius:30px;
-margin-top:15px;
-font-weight:500;
 }
 
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:15px;
+margin-top:25px;
 }
 
 .stat{
 background:#f8fafc;
-padding:18px;
+padding:20px;
 border-radius:12px;
-text-align:center;
 border:1px solid var(--border);
+text-align:center;
 }
 
 .stat .value{
@@ -86,7 +84,12 @@ margin-top:5px;
 .section-title{
 font-size:20px;
 font-weight:600;
-margin-bottom:15px;
+margin-bottom:20px;
+}
+
+.chart-box{
+width:220px;
+margin:auto;
 }
 
 .item{
@@ -97,6 +100,7 @@ margin-bottom:18px;
 display:flex;
 justify-content:space-between;
 margin-bottom:6px;
+font-size:14px;
 }
 
 .bar{
@@ -108,16 +112,16 @@ overflow:hidden;
 
 .fill{
 height:100%;
-background:linear-gradient(90deg,#2563eb,#60a5fa);
+background:linear-gradient(90deg,var(--primary),#60a5fa);
 border-radius:20px;
-transition:width 0.6s ease;
+transition:width 1s;
 }
 
 .footer{
 text-align:center;
 font-size:13px;
 color:var(--muted);
-margin-top:15px;
+margin-top:20px;
 }
 
 </style>
@@ -129,9 +133,7 @@ margin-top:15px;
 
 <div class="card hero">
 
-<div class="label">
-INDEKS KEPUASAN MASYARAKAT
-</div>
+<div>INDEKS KEPUASAN MASYARAKAT</div>
 
 <div class="score" id="score">...</div>
 
@@ -155,8 +157,21 @@ INDEKS KEPUASAN MASYARAKAT
 </div>
 
 <div class="stat">
-<div>Grade Mutu</div>
+<div>Grade</div>
 <div class="value" id="grade"></div>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="section-title">
+Distribusi Kepuasan
+</div>
+
+<div class="chart-box">
+<canvas id="donut"></canvas>
 </div>
 
 </div>
@@ -171,12 +186,13 @@ Detail Unsur Pelayanan
 <div id="unsur"></div>
 
 <div class="footer">
-Data diperbarui otomatis dari sistem SKM
+Data realtime dari sistem SKM
 </div>
 
 </div>
 
 </div>
+
 
 
 <script>
@@ -192,30 +208,77 @@ const json = await res.json();
 const d = json.data;
 
 
-document.getElementById("score")
-.innerHTML = d.ikmScore;
+
+// SCORE
+
+document.getElementById("score").innerHTML =
+d.ikmScore;
+
+document.getElementById("badge").innerHTML =
+d.ikmCategory.grade + " • " + d.ikmCategory.label;
+
+document.getElementById("responden").innerHTML =
+d.totalResponses;
+
+document.getElementById("kategori").innerHTML =
+d.ikmCategory.label;
+
+document.getElementById("grade").innerHTML =
+d.ikmCategory.grade;
 
 
-document.getElementById("badge")
-.innerHTML =
-d.ikmCategory.grade
-+ " • "
-+ d.ikmCategory.label;
+
+// DONUT CHART
+
+const dist = d.ratingDistribution;
+
+new Chart(
+document.getElementById("donut"),
+{
+type:"doughnut",
+
+data:{
+labels:[
+"Tidak Baik",
+"Kurang Baik",
+"Baik",
+"Sangat Baik"
+],
+
+datasets:[{
+data:[
+dist["1"]||0,
+dist["2"]||0,
+dist["3"]||0,
+dist["4"]||0
+],
+
+backgroundColor:[
+"#ef4444",
+"#f59e0b",
+"#3b82f6",
+"#10b981"
+]
+}]
+},
+
+options:{
+plugins:{
+legend:{
+position:"bottom"
+}
+},
+
+cutout:"65%"
+}
+}
+);
 
 
-document.getElementById("responden")
-.innerHTML = d.totalResponses;
 
+// UNSUR
 
-document.getElementById("kategori")
-.innerHTML = d.ikmCategory.label;
-
-
-document.getElementById("grade")
-.innerHTML = d.ikmCategory.grade;
-
-
-let html = "";
+let html="";
 
 for(const key in d.averagePerUnsur){
 
@@ -247,14 +310,52 @@ style="width:${percent}%">
 
 }
 
-document.getElementById("unsur")
-.innerHTML = html;
+document.getElementById("unsur").innerHTML = html;
+
+
+// AUTO HEIGHT IFRAME
+
+setTimeout(()=>{
+
+const height =
+document.body.scrollHeight;
+
+window.parent.postMessage(
+{
+frameHeight:height
+},
+"*"
+);
+
+},500);
 
 }
 
 loadSKM();
 
 </script>
+
+
+<script>
+
+// LISTENER AUTO HEIGHT
+
+window.addEventListener(
+"message",
+function(e){
+
+if(e.data.frameHeight){
+
+document.querySelector("iframe").style.height =
+e.data.frameHeight + "px";
+
+}
+
+}
+);
+
+</script>
+
 
 </body>
 </html>
