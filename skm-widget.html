@@ -6,74 +6,118 @@
 
 <style>
 
+:root{
+--primary:#2563eb;
+--bg:#f1f5f9;
+--card:#ffffff;
+--text:#0f172a;
+--muted:#64748b;
+--border:#e2e8f0;
+}
+
 body{
-font-family:Arial, sans-serif;
+font-family:system-ui,-apple-system,Segoe UI,Roboto;
 margin:0;
-padding:15px;
-background:#f8fafc;
+padding:20px;
+background:var(--bg);
+color:var(--text);
+}
+
+.container{
+max-width:900px;
+margin:auto;
 }
 
 .card{
-background:white;
-border-radius:10px;
-padding:20px;
-box-shadow:0 2px 8px rgba(0,0,0,0.08);
-margin-bottom:15px;
+background:var(--card);
+border-radius:14px;
+padding:25px;
+box-shadow:0 10px 25px rgba(0,0,0,0.05);
+margin-bottom:20px;
 }
 
-.center{text-align:center;}
-
-.score{
-font-size:48px;
-font-weight:bold;
-color:#2563eb;
+.hero{
+text-align:center;
+padding:35px 20px;
+background:linear-gradient(135deg,#2563eb,#3b82f6);
+color:white;
 }
 
-.grade{
-font-size:18px;
-margin-top:5px;
+.hero .score{
+font-size:72px;
+font-weight:700;
+line-height:1;
+}
+
+.hero .label{
+opacity:0.9;
+margin-bottom:10px;
+}
+
+.badge{
+display:inline-block;
+background:rgba(255,255,255,0.2);
+padding:8px 18px;
+border-radius:30px;
+margin-top:15px;
+font-weight:500;
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-top:15px;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
 }
 
-.box{
-background:#f1f5f9;
-padding:12px;
-border-radius:8px;
+.stat{
+background:#f8fafc;
+padding:18px;
+border-radius:12px;
 text-align:center;
+border:1px solid var(--border);
 }
 
-.label{
-font-size:14px;
-color:#64748b;
-}
-
-.value{
-font-size:20px;
-font-weight:bold;
+.stat .value{
+font-size:26px;
+font-weight:600;
 margin-top:5px;
 }
 
+.section-title{
+font-size:20px;
+font-weight:600;
+margin-bottom:15px;
+}
+
 .item{
-margin-top:10px;
+margin-bottom:18px;
+}
+
+.item-header{
+display:flex;
+justify-content:space-between;
+margin-bottom:6px;
 }
 
 .bar{
-height:8px;
+height:12px;
 background:#e2e8f0;
-border-radius:5px;
+border-radius:20px;
 overflow:hidden;
-margin-top:4px;
 }
 
 .fill{
 height:100%;
-background:#2563eb;
+background:linear-gradient(90deg,#2563eb,#60a5fa);
+border-radius:20px;
+transition:width 0.6s ease;
+}
+
+.footer{
+text-align:center;
+font-size:13px;
+color:var(--muted);
+margin-top:15px;
 }
 
 </style>
@@ -81,85 +125,134 @@ background:#2563eb;
 </head>
 <body>
 
-<div class="card center">
+<div class="container">
 
-<div>Indeks Kepuasan Masyarakat (IKM)</div>
+<div class="card hero">
+
+<div class="label">
+INDEKS KEPUASAN MASYARAKAT
+</div>
 
 <div class="score" id="score">...</div>
 
-<div class="grade" id="grade"></div>
+<div>/100</div>
+
+<div class="badge" id="badge"></div>
+
+</div>
+
 
 <div class="grid">
 
-<div class="box">
-<div class="label">Responden</div>
-<div class="value" id="responden">-</div>
+<div class="stat">
+<div>Total Responden</div>
+<div class="value" id="responden"></div>
 </div>
 
-<div class="box">
-<div class="label">Kategori</div>
-<div class="value" id="kategori">-</div>
+<div class="stat">
+<div>Kategori</div>
+<div class="value" id="kategori"></div>
 </div>
 
-<div class="box">
-<div class="label">Grade</div>
-<div class="value" id="grade2">-</div>
-</div>
-
+<div class="stat">
+<div>Grade Mutu</div>
+<div class="value" id="grade"></div>
 </div>
 
 </div>
+
 
 <div class="card">
 
-<div><b>Detail Unsur Pelayanan</b></div>
+<div class="section-title">
+Detail Unsur Pelayanan
+</div>
 
 <div id="unsur"></div>
 
+<div class="footer">
+Data diperbarui otomatis dari sistem SKM
 </div>
+
+</div>
+
+</div>
+
 
 <script>
 
-async function load(){
+async function loadSKM(){
 
-let r=await fetch("https://skm.setdes.id/api/chart-data");
-let j=await r.json();
+const res = await fetch(
+"https://skm.setdes.id/api/chart-data"
+);
 
-let d=j.data;
+const json = await res.json();
 
-document.getElementById("score").innerHTML=d.ikmScore;
-document.getElementById("grade").innerHTML=d.ikmCategory.label+" (Grade "+d.ikmCategory.grade+")";
+const d = json.data;
 
-document.getElementById("responden").innerHTML=d.totalResponses;
-document.getElementById("kategori").innerHTML=d.ikmCategory.label;
-document.getElementById("grade2").innerHTML=d.ikmCategory.grade;
 
-let html="";
+document.getElementById("score")
+.innerHTML = d.ikmScore;
 
-let unsur=d.averagePerUnsur;
 
-for(let key in unsur){
+document.getElementById("badge")
+.innerHTML =
+d.ikmCategory.grade
++ " • "
++ d.ikmCategory.label;
 
-let u=unsur[key];
 
-let persen=(u.average/4)*100;
+document.getElementById("responden")
+.innerHTML = d.totalResponses;
 
-html+=`
+
+document.getElementById("kategori")
+.innerHTML = d.ikmCategory.label;
+
+
+document.getElementById("grade")
+.innerHTML = d.ikmCategory.grade;
+
+
+let html = "";
+
+for(const key in d.averagePerUnsur){
+
+const u = d.averagePerUnsur[key];
+
+const percent = (u.average / 4) * 100;
+
+html += `
 <div class="item">
-<div>${u.label} : <b>${u.average}</b></div>
-<div class="bar">
-<div class="fill" style="width:${persen}%"></div>
+
+<div class="item-header">
+
+<div>${u.label}</div>
+
+<div>${u.average}</div>
+
 </div>
+
+<div class="bar">
+
+<div class="fill"
+style="width:${percent}%">
+</div>
+
+</div>
+
 </div>
 `;
 
 }
 
-document.getElementById("unsur").innerHTML=html;
+document.getElementById("unsur")
+.innerHTML = html;
 
 }
 
-load();
+loadSKM();
 
 </script>
 
