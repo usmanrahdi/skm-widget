@@ -36,17 +36,26 @@ color:#555;
 
 <script>
 fetch('https://skm.setdes.id/api/chart-data')
-.then(r=>r.json())
-.then(d=>{
-let last=d[d.length-1];
-let nilai =
-    last.value ??
-    last.nilai ??
-    last.skm ??
-    last.score ??
-    Object.values(last)[1];
+.then(r => r.json())
+.then(d => {
+
+let nilai = "Tidak tersedia";
+
+if (d.data && d.data.length > 0) {
+    nilai = d.data[d.data.length - 1];
+}
+else if (Array.isArray(d)) {
+    let last = d[d.length - 1];
+    nilai =
+        last.value ??
+        last.nilai ??
+        last.skm ??
+        last.score ??
+        Object.values(last)[1];
+}
 
 document.getElementById('nilai').innerHTML = nilai;
+
 })
 .catch(()=>{
 document.getElementById('nilai').innerHTML="Tidak tersedia";
