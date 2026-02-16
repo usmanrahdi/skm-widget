@@ -3,63 +3,90 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body{
-font-family:Arial, sans-serif;
-margin:0;
-padding:10px;
-text-align:center;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
 }
+
 .box{
-border:1px solid #2c7be5;
-background:#f4f8ff;
-border-radius:8px;
-padding:15px;
+    border: 1px solid #2c7be5;
+    background: #f4f8ff;
+    border-radius: 8px;
+    padding: 15px;
 }
-.nilai{
-font-size:32px;
-font-weight:bold;
-color:#2c7be5;
-}
+
 .label{
-font-size:14px;
-color:#555;
+    font-size: 14px;
+    color: #555;
+}
+
+.nilai{
+    font-size: 32px;
+    font-weight: bold;
+    color: #2c7be5;
+    margin-top: 5px;
 }
 </style>
+
 </head>
 <body>
 
 <div class="box">
-<div class="label">Nilai SKM Terbaru</div>
-<div class="nilai" id="nilai">Loading...</div>
+    <div class="label">Nilai SKM Terbaru</div>
+    <div class="nilai" id="nilai">Loading...</div>
 </div>
 
 <script>
-fetch('https://skm.setdes.id/api/chart-data')
-.then(r => r.json())
-.then(d => {
 
-let nilai = "Tidak tersedia";
+async function loadSKM() {
 
-if (d.data && d.data.length > 0) {
-    nilai = d.data[d.data.length - 1];
+    try {
+
+        const response = await fetch('https://skm.setdes.id/api/chart-data');
+        const json = await response.json();
+
+        let nilai = "Tidak tersedia";
+
+        // FORMAT 1: { data: [85, 87, 88] }
+        if (json.data && json.data.length > 0) {
+            nilai = json.data[json.data.length - 1];
+        }
+
+        // FORMAT 2: array object
+        else if (Array.isArray(json) && json.length > 0) {
+
+            let last = json[json.length - 1];
+
+            nilai =
+                last.value ??
+                last.nilai ??
+                last.skm ??
+                last.score ??
+                Object.values(last)[1];
+        }
+
+        // FORMAT 3: langsung array angka
+        else if (Array.isArray(json)) {
+            nilai = json[json.length - 1];
+        }
+
+        document.getElementById("nilai").innerHTML = nilai;
+
+    }
+    catch (e) {
+
+        document.getElementById("nilai").innerHTML = "Tidak tersedia";
+
+    }
+
 }
-else if (Array.isArray(d)) {
-    let last = d[d.length - 1];
-    nilai =
-        last.value ??
-        last.nilai ??
-        last.skm ??
-        last.score ??
-        Object.values(last)[1];
-}
 
-document.getElementById('nilai').innerHTML = nilai;
+loadSKM();
 
-})
-.catch(()=>{
-document.getElementById('nilai').innerHTML="Tidak tersedia";
-});
 </script>
 
 </body>
