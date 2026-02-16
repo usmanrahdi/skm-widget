@@ -7,74 +7,73 @@
 <style>
 
 body{
+font-family:Arial, sans-serif;
 margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:#f1f5f9;
-}
-
-.container{
-padding:20px;
+padding:15px;
+background:#f8fafc;
 }
 
 .card{
 background:white;
-border-radius:14px;
-padding:25px;
-box-shadow:0 8px 20px rgba(0,0,0,0.08);
-text-align:center;
+border-radius:10px;
+padding:20px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+margin-bottom:15px;
 }
 
-.title{
-font-size:15px;
-color:#64748b;
-margin-bottom:10px;
-}
+.center{text-align:center;}
 
 .score{
-font-size:64px;
+font-size:48px;
 font-weight:bold;
 color:#2563eb;
-line-height:1;
 }
 
-.max{
-color:#64748b;
-margin-bottom:10px;
-}
-
-.badge{
-display:inline-block;
-padding:8px 18px;
-border-radius:30px;
-font-weight:600;
-margin-top:10px;
-font-size:14px;
+.grade{
+font-size:18px;
+margin-top:5px;
 }
 
 .grid{
-display:flex;
-gap:15px;
-justify-content:center;
-margin-top:20px;
-flex-wrap:wrap;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-top:15px;
 }
 
 .box{
 background:#f1f5f9;
-padding:12px 18px;
-border-radius:10px;
-min-width:120px;
+padding:12px;
+border-radius:8px;
+text-align:center;
 }
 
 .label{
-font-size:13px;
+font-size:14px;
 color:#64748b;
 }
 
 .value{
 font-size:20px;
 font-weight:bold;
+margin-top:5px;
+}
+
+.item{
+margin-top:10px;
+}
+
+.bar{
+height:8px;
+background:#e2e8f0;
+border-radius:5px;
+overflow:hidden;
 margin-top:4px;
+}
+
+.fill{
+height:100%;
+background:#2563eb;
 }
 
 </style>
@@ -82,23 +81,13 @@ margin-top:4px;
 </head>
 <body>
 
-<div class="container">
+<div class="card center">
 
-<div class="card">
+<div>Indeks Kepuasan Masyarakat (IKM)</div>
 
-<div class="title">
-INDEKS KEPUASAN MASYARAKAT (IKM)
-</div>
+<div class="score" id="score">...</div>
 
-<div class="score" id="score">
-...
-</div>
-
-<div class="max">
-/ 100
-</div>
-
-<div id="badge"></div>
+<div class="grade" id="grade"></div>
 
 <div class="grid">
 
@@ -114,12 +103,18 @@ INDEKS KEPUASAN MASYARAKAT (IKM)
 
 <div class="box">
 <div class="label">Grade</div>
-<div class="value" id="grade">-</div>
+<div class="value" id="grade2">-</div>
 </div>
 
 </div>
 
 </div>
+
+<div class="card">
+
+<div><b>Detail Unsur Pelayanan</b></div>
+
+<div id="unsur"></div>
 
 </div>
 
@@ -127,31 +122,40 @@ INDEKS KEPUASAN MASYARAKAT (IKM)
 
 async function load(){
 
-const r = await fetch("https://skm.setdes.id/api/chart-data");
-const j = await r.json();
+let r=await fetch("https://skm.setdes.id/api/chart-data");
+let j=await r.json();
 
-const score = j.data.ikmScore;
-const kategori = j.data.ikmCategory.label;
-const grade = j.data.ikmCategory.grade;
-const responden = j.data.totalResponses;
+let d=j.data;
 
-document.getElementById("score").innerHTML = score;
-document.getElementById("kategori").innerHTML = kategori;
-document.getElementById("grade").innerHTML = grade;
-document.getElementById("responden").innerHTML = responden;
+document.getElementById("score").innerHTML=d.ikmScore;
+document.getElementById("grade").innerHTML=d.ikmCategory.label+" (Grade "+d.ikmCategory.grade+")";
 
-let color="#2563eb";
-let bg="#dbeafe";
+document.getElementById("responden").innerHTML=d.totalResponses;
+document.getElementById("kategori").innerHTML=d.ikmCategory.label;
+document.getElementById("grade2").innerHTML=d.ikmCategory.grade;
 
-if(grade=="A"){color="#059669";bg="#d1fae5";}
-if(grade=="B"){color="#2563eb";bg="#dbeafe";}
-if(grade=="C"){color="#d97706";bg="#fef3c7";}
-if(grade=="D"){color="#dc2626";bg="#fee2e2";}
+let html="";
 
-document.getElementById("badge").innerHTML=
-`<span class="badge" style="background:${bg};color:${color}">
-${grade} - ${kategori}
-</span>`;
+let unsur=d.averagePerUnsur;
+
+for(let key in unsur){
+
+let u=unsur[key];
+
+let persen=(u.average/4)*100;
+
+html+=`
+<div class="item">
+<div>${u.label} : <b>${u.average}</b></div>
+<div class="bar">
+<div class="fill" style="width:${persen}%"></div>
+</div>
+</div>
+`;
+
+}
+
+document.getElementById("unsur").innerHTML=html;
 
 }
 
